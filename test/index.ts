@@ -49,13 +49,13 @@ describe("ERC20 Token", async () => {
             await expect(() => token.transfer(user1.address, 200)).to.changeTokenBalance(token, user1, 200);
         });
 
-        it("transfer to zero address", async () => {
+        it("transfer to zero address -> fail", async () => {
             await expect(token.transfer(ethers.constants.AddressZero, 100)).to.revertedWith(
                 "ERC20: transfer to the zero address"
             );
         });
 
-        it("transfer more values than balance", async () => {
+        it("transfer more values than balance -> fail", async () => {
             await expect(() => token.transfer(user1.address, totalSupply)).to.changeTokenBalance(
                 token,
                 user1,
