@@ -17,60 +17,51 @@ describe("ERC20 Token", async () => {
     const [owner, user1, user2, user3] = provider.getWallets();
 
     beforeEach(async () => {
-        token = (await deployContract(owner, TokenArtifact, [
-            name,
-            symbol,
-            totalSupply,
-            18
-        ])) as Token;
+        token = (await deployContract(owner, TokenArtifact, [name, symbol, totalSupply, 18])) as Token;
     });
 
     // Default
     context("Check infomation", async () => {
-        it("token name", async () => {
+        it("name", async () => {
             expect(await token.name()).to.equal(name);
         });
 
-        it("token symbol", async () => {
+        it("symbol", async () => {
             expect(await token.symbol()).to.equal(symbol);
         });
 
-        it("token decimals", async () => {
+        it("decimals", async () => {
             expect(await token.decimals()).to.equal(18);
         });
 
-        it("token totalSupply", async () => {
+        it("totalSupply", async () => {
             expect(await token.totalSupply()).to.equal(totalSupply);
         });
 
-        it("admin balance", async () => {
-            expect(await token.balanceOf(owner.address)).to.be.equal(
-                totalSupply
-            );
+        it("balance", async () => {
+            expect(await token.balanceOf(owner.address)).to.be.equal(totalSupply);
         });
     });
 
     // Transfer
     context("Transfer test", async () => {
         it("transfer to EOA", async () => {
-            await expect(() =>
-                token.transfer(user1.address, 200)
-            ).to.changeTokenBalance(token, user1, 200);
+            await expect(() => token.transfer(user1.address, 200)).to.changeTokenBalance(token, user1, 200);
         });
 
         it("transfer to zero address", async () => {
-            await expect(
-                token.transfer(ethers.constants.AddressZero, 100)
-            ).to.revertedWith("ERC20: transfer to the zero address");
+            await expect(token.transfer(ethers.constants.AddressZero, 100)).to.revertedWith(
+                "ERC20: transfer to the zero address"
+            );
         });
 
         it("transfer more values than balance", async () => {
-            await expect(() =>
-                token.transfer(user1.address, totalSupply)
-            ).to.changeTokenBalance(token, user1, totalSupply);
-            await expect(token.transfer(user1.address, 1)).to.revertedWith(
-                "ERC20: transfer amount exceeds balance"
+            await expect(() => token.transfer(user1.address, totalSupply)).to.changeTokenBalance(
+                token,
+                user1,
+                totalSupply
             );
+            await expect(token.transfer(user1.address, 1)).to.revertedWith("ERC20: transfer amount exceeds balance");
         });
 
         it("catch transfer event", async () => {
@@ -80,21 +71,58 @@ describe("ERC20 Token", async () => {
         });
     });
 
+    // Approve
     context("Approve test", async () => {
         const getAddress = ethers.utils.getAddress;
+        const conA = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7654";
+        const conB = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7651";
+        const conC = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7650";
         it("catch approve event", async () => {
-            await expect(
-                token.approve(
-                    getAddress("0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7654"),
-                    10000
-                )
-            )
+            await expect(token.approve(getAddress(conA), 10000))
                 .to.emit(token, "Approval")
-                .withArgs(
-                    owner.address,
-                    getAddress("0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7654"),
-                    10000
-                );
+                .withArgs(owner.address, getAddress(conA), 10000);
+        });
+
+        it("check allowance", async () => {
+            await token.approve(conB, 7000);
+            expect(await token.allowance(owner.address, conB)).to.equal(7000);
+            expect(await token.allowance(owner.address, conC)).to.equal(0);
+        });
+
+        it("increase allowance", async () => {
+            await token.approve(conA, 1000);
+            expect(await token.allowance(owner.address, conA)).to.equal(1000);
+            await token.increaseAllowance(conA, 1000);
+            expect(await token.allowance(owner.address, conA)).to.equal(2000);
+        });
+
+        it("increase allowance to zero address -> fail ", async () => {
+            await token.transfer(user1.address, 100);
+            await expect(token.connect(user1).increaseAllowance(ethers.constants.AddressZero, 100)).to.revertedWith(
+                "ERC20: approve to the zero address"
+            );
+        });
+
+        it("decrease allowance", async () => {
+            await token.transfer(user1.address, 100);
+            await token.connect(user1).approve(conA, 100);
+            await token.connect(user1).decreaseAllowance(conA, 10);
+            expect(await token.allowance(user1.address, conA)).to.equal(90);
+        });
+
+        it("decrease more allowance -> fail", async () => {
+            await token.transfer(user1.address, 100);
+            await token.connect(user1).approve(conA, 100);
+            await expect(token.connect(user1).decreaseAllowance(conA, 101)).to.revertedWith(
+                "ERC20: decreased allowance below zero"
+            );
+        });
+
+        it("decrease to zero -> fail", async () => {
+            await token.transfer(user1.address, 100);
+            await expect(token.connect(user1).decreaseAllowance(ethers.constants.AddressZero, 0)).to.revertedWith(
+                "ERC20: approve to the zero address"
+            );
         });
     });
 });
