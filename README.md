@@ -1,4 +1,4 @@
-# ERC20_test_code
+# ERC_token_test_code
 
 ## Installation
 
