@@ -22,7 +22,7 @@ describe("ERC20 test", async () => {
     });
 
     // Default
-    context("Check default infomation", async () => {
+    context("Infomation", async () => {
         it("name", async () => {
             expect(await token.name()).to.equal(name);
         });
