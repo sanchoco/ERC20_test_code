@@ -6,7 +6,7 @@ import ERC20TokenArtifact from "../artifacts/contracts/ERC20_Token.sol/ERC20Toke
 // eslint-disable-next-line node/no-missing-import
 import { ERC20Token } from "../typechain";
 
-describe("ERC20 Token", async () => {
+describe("ERC20 test", async () => {
     let token: ERC20Token;
     const name = "ERC20 TEST TOKEN";
     const symbol = "ETT";
