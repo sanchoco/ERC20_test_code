@@ -136,7 +136,7 @@ describe("ERC20 test", async () => {
             expect(await token.balanceOf(user3.address)).to.equal(100);
         });
 
-        it("Do not Approved user is transferFrom must be fail.", async () => {
+        it("Not approved user is transferFrom must be fail.", async () => {
             await token.transfer(user1.address, 1000);
             await token.connect(user1).approve(user2.address, 1000);
             await expect(token.connect(user3).transferFrom(user1.address, user3.address, 100)).to.revertedWith(
@@ -144,11 +144,19 @@ describe("ERC20 test", async () => {
             );
         });
 
-        it("More than approved amount is must be fail.", async () => {
+        it("More than approved amount will be fail.", async () => {
             await token.transfer(user1.address, 1000);
             await token.connect(user1).approve(user2.address, 100);
             await expect(token.connect(user2).transferFrom(user1.address, user2.address, 200)).to.revertedWith(
                 "ERC20: insufficient allowance"
+            );
+        });
+
+        it("More than balance will be fail.", async () => {
+            await token.transfer(user1.address, 1000);
+            await token.connect(user1).approve(user2.address, 5000);
+            await expect(token.connect(user2).transferFrom(user1.address, user2.address, 2000)).to.revertedWith(
+                "ERC20: transfer amount exceeds balance"
             );
         });
     });
