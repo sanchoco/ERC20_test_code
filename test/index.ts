@@ -21,7 +21,7 @@ describe("ERC20 Token", async () => {
     });
 
     // Default
-    context("Check infomation", async () => {
+    context("Check default infomation", async () => {
         it("name", async () => {
             expect(await token.name()).to.equal(name);
         });
@@ -44,18 +44,18 @@ describe("ERC20 Token", async () => {
     });
 
     // Transfer
-    context("Transfer test", async () => {
-        it("transfer to EOA", async () => {
+    context("Transfer", async () => {
+        it("Transfer to EOA must be success", async () => {
             await expect(() => token.transfer(user1.address, 200)).to.changeTokenBalance(token, user1, 200);
         });
 
-        it("transfer to zero address -> fail", async () => {
+        it("Transfer to zero address must be fail", async () => {
             await expect(token.transfer(ethers.constants.AddressZero, 100)).to.revertedWith(
                 "ERC20: transfer to the zero address"
             );
         });
 
-        it("transfer more values than balance -> fail", async () => {
+        it("Transfer more balance must be fail", async () => {
             await expect(() => token.transfer(user1.address, totalSupply)).to.changeTokenBalance(
                 token,
                 user1,
@@ -64,7 +64,7 @@ describe("ERC20 Token", async () => {
             await expect(token.transfer(user1.address, 1)).to.revertedWith("ERC20: transfer amount exceeds balance");
         });
 
-        it("catch transfer event", async () => {
+        it("Transfer must be catch event", async () => {
             await expect(token.transfer(user1.address, 50))
                 .to.emit(token, "Transfer")
                 .withArgs(owner.address, user1.address, 50);
@@ -72,45 +72,45 @@ describe("ERC20 Token", async () => {
     });
 
     // Approve
-    context("Approve test", async () => {
+    context("Approve", async () => {
         const getAddress = ethers.utils.getAddress;
         const conA = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7654";
         const conB = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7651";
         const conC = "0xc6a2ad8cc6e4a7e08fc37cc5954be07d499e7650";
-        it("catch approve event", async () => {
+        it("Approve must be catch event", async () => {
             await expect(token.approve(getAddress(conA), 10000))
                 .to.emit(token, "Approval")
                 .withArgs(owner.address, getAddress(conA), 10000);
         });
 
-        it("check allowance", async () => {
+        it("Approve is other contracts not affected.", async () => {
             await token.approve(conB, 7000);
             expect(await token.allowance(owner.address, conB)).to.equal(7000);
             expect(await token.allowance(owner.address, conC)).to.equal(0);
         });
 
-        it("increase allowance", async () => {
+        it("Approve and increase allowance must be success.", async () => {
             await token.approve(conA, 1000);
             expect(await token.allowance(owner.address, conA)).to.equal(1000);
             await token.increaseAllowance(conA, 1000);
             expect(await token.allowance(owner.address, conA)).to.equal(2000);
         });
 
-        it("increase allowance to zero address -> fail ", async () => {
+        it("Increase zero address must be fail. ", async () => {
             await token.transfer(user1.address, 100);
             await expect(token.connect(user1).increaseAllowance(ethers.constants.AddressZero, 100)).to.revertedWith(
                 "ERC20: approve to the zero address"
             );
         });
 
-        it("decrease allowance", async () => {
+        it("Decrease allowance must be success.", async () => {
             await token.transfer(user1.address, 100);
             await token.connect(user1).approve(conA, 100);
             await token.connect(user1).decreaseAllowance(conA, 10);
             expect(await token.allowance(user1.address, conA)).to.equal(90);
         });
 
-        it("decrease more allowance -> fail", async () => {
+        it("Allowance can not be less than 0.", async () => {
             await token.transfer(user1.address, 100);
             await token.connect(user1).approve(conA, 100);
             await expect(token.connect(user1).decreaseAllowance(conA, 101)).to.revertedWith(
@@ -118,7 +118,7 @@ describe("ERC20 Token", async () => {
             );
         });
 
-        it("decrease to zero -> fail", async () => {
+        it("Zero address can not decrease allowance.", async () => {
             await token.transfer(user1.address, 100);
             await expect(token.connect(user1).decreaseAllowance(ethers.constants.AddressZero, 0)).to.revertedWith(
                 "ERC20: approve to the zero address"
