@@ -1,12 +1,13 @@
 import { ethers, waffle } from "hardhat";
-import { expect } from "chai";
-// eslint-disable-next-line node/no-missing-import
-import { Token } from "../typechain";
-import TokenArtifact from "../artifacts/contracts/Token.sol/Token.json";
 import { deployContract } from "ethereum-waffle";
+import { expect } from "chai";
+
+import ERC20TokenArtifact from "../artifacts/contracts/ERC20_Token.sol/ERC20Token.json";
+// eslint-disable-next-line node/no-missing-import
+import { ERC20Token } from "../typechain";
 
 describe("ERC20 Token", async () => {
-    let token: Token;
+    let token: ERC20Token;
     const name = "ERC20 TEST TOKEN";
     const symbol = "ETT";
     const totalSupply = "10000000000000000000000";
@@ -17,7 +18,7 @@ describe("ERC20 Token", async () => {
     const [owner, user1, user2, user3] = provider.getWallets();
 
     beforeEach(async () => {
-        token = (await deployContract(owner, TokenArtifact, [name, symbol, totalSupply, 18])) as Token;
+        token = (await deployContract(owner, ERC20TokenArtifact, [name, symbol, totalSupply, 18])) as ERC20Token;
     });
 
     // Default
@@ -45,17 +46,17 @@ describe("ERC20 Token", async () => {
 
     // Transfer
     context("Transfer", async () => {
-        it("Transfer to EOA must be success", async () => {
+        it("Transfer to EOA must be success.", async () => {
             await expect(() => token.transfer(user1.address, 200)).to.changeTokenBalance(token, user1, 200);
         });
 
-        it("Transfer to zero address must be fail", async () => {
+        it("Transfer to zero address must be fail.", async () => {
             await expect(token.transfer(ethers.constants.AddressZero, 100)).to.revertedWith(
                 "ERC20: transfer to the zero address"
             );
         });
 
-        it("Transfer more balance must be fail", async () => {
+        it("Transfer more balance must be fail.", async () => {
             await expect(() => token.transfer(user1.address, totalSupply)).to.changeTokenBalance(
                 token,
                 user1,
@@ -64,7 +65,7 @@ describe("ERC20 Token", async () => {
             await expect(token.transfer(user1.address, 1)).to.revertedWith("ERC20: transfer amount exceeds balance");
         });
 
-        it("Transfer must be catch event", async () => {
+        it("Transfer must be catch event.", async () => {
             await expect(token.transfer(user1.address, 50))
                 .to.emit(token, "Transfer")
                 .withArgs(owner.address, user1.address, 50);

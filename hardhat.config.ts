@@ -18,7 +18,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 const config: HardhatUserConfig = {
-    solidity: "0.8.0",
+    solidity: "0.8.1",
     networks: {
         baobab: {
             url: process.env.BAOBAB_URL || "",
